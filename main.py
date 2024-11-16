@@ -1,7 +1,3 @@
-# Don't Remove Credit Tg - @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 import os
 import re
 import sys
@@ -9,15 +5,12 @@ import time
 import asyncio
 import requests
 from subprocess import getstatusoutput
-from aiohttp import ClientSession
-from pyromod import listen
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyrogram.errors import FloodWait
 
-from vars import API_ID, API_HASH, BOT_TOKEN  # Ensure these variables are defined in `vars.py`
-import core as helper  # Ensure this module exists
-from utils import progress_bar  # Ensure this utility exists
+# Ensure to update these variables with your actual details
+CHANNEL_ID = "@Hub_formate"  # Channel ID or username
 
 bot = Client(
     "bot",
@@ -30,22 +23,14 @@ bot = Client(
 async def start(bot: Client, m: Message):
     await m.reply_text(
         f"<b>Hello {m.from_user.mention} 👋\n\n"
-        f"I am a bot for downloading links from your **.TXT** file and uploading them to Telegram. "
+        f"I am a bot for downloading links from your **.TXT** file and uploading them to Telegram , bot made by cr choudhary 💝🎉. "
         f"Send /upload to start or /stop to stop any ongoing task.</b>"
     )
 
 @bot.on_message(filters.command("stop"))
 async def restart_handler(_, m: Message):
-    await m.reply_text("**Stopped** 🚦", True)
+    await m.reply_text("**Stopped/रुक भाई 😁** 🚦", True)
     os.execl(sys.executable, sys.executable, *sys.argv)
-
-import os
-from pyrogram import Client
-from pyrogram.types import Message
-from pyrogram import filters
-
-# Replace with your channel username or ID
-CHANNEL_ID = "@Hub_formate"  # Update this with your channel username or ID
 
 @bot.on_message(filters.command(["upload"]))
 async def upload(bot: Client, m: Message):
@@ -72,7 +57,8 @@ async def upload(bot: Client, m: Message):
         )
 
         # Inform the user the file was successfully forwarded
-        await m.reply_text(f"**File successfully forwarded to the channel:** {CHANNEL_ID}")
+        # Ensure response is sent correctly
+        await m.reply_text(f"**File processing me h wait kro thoda tb tk isko join krlo @targetallcourse :**")
     
     except Exception as e:
         # If there's an error, send a failure message
@@ -82,9 +68,9 @@ async def upload(bot: Client, m: Message):
         # Always remove the file after processing, whether successful or not
         if os.path.exists(file_path):
             os.remove(file_path)
-        return
 
-    await editable.edit(f"**Total Links Found:** {len(links)} 🔗\n\n"
+    # Ensure the next set of actions is clear and properly executed:
+    await editable.edit(f"**Total Links Found:** {len(content)} 🔗\n\n"
                         f"Send the starting number (default is 1):")
     input0: Message = await bot.listen(editable.chat.id)
     start_number = int(input0.text.strip()) if input0.text.isdigit() else 1
@@ -129,9 +115,9 @@ async def upload(bot: Client, m: Message):
 
     count = start_number
     try:
-        for i in range(count - 1, len(links)):
-            url = "https://" + links[i][1].strip()
-            name = re.sub(r'[\\/:*?"<>|]', "", links[i][0][:60]).strip()
+        for i in range(count - 1, len(content)):
+            url = "https://" + content[i].strip()
+            name = re.sub(r'[\\/:*?"<>|]', "", content[i][:60]).strip()
             name = f"{str(count).zfill(3)}) {name}"
 
             # Check file type
@@ -190,6 +176,7 @@ async def upload(bot: Client, m: Message):
 
     except Exception as e:
         await m.reply_text(f"Unexpected error: {e}")
+    
     await m.reply_text("**✅ All tasks completed! BY ❤️ CR CHOUDHARY **")
 
 bot.run()
