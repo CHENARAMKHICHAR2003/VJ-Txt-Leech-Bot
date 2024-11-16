@@ -60,7 +60,7 @@ async def upload(bot: Client, m: Message):
         )
 
         # Notify user about the process
-        await m.reply_text("**File processing me h wait kro thoda tb tk isko join krlo @targetallcourse :**")
+        await m.reply_text("**File processing me h wait kro thoda tb tk isko join krlo @targetallcourse or jo bot upr puch rha h jldi se iska reply do ताकि me batch nikal sku ☺️:**")
     
     except Exception as e:
         await m.reply_text(f"**Invalid file input. Error:** {e}")
@@ -112,62 +112,63 @@ async def upload(bot: Client, m: Message):
         if thumbnail_url.startswith("http://") or thumbnail_url.startswith("https://"):
             getstatusoutput(f"wget '{thumbnail_url}' -O 'thumb.jpg'")
             thumbnail = "thumb.jpg"
+count = start_number
+try:
+    for i in range(count - 1, len(content)):
+        # Extract URL and clean up any extra text
+        line = content[i].strip()
+        url = line.split(":")[-1].strip() if ":" in line else line
 
-    count = start_number
-    try:
-        for i in range(count - 1, len(content)):
-            url = content[i].strip()
-            if not re.match(r'http[s]?://', url):
-                await m.reply_text(f"Invalid URL skipped: {url}")
-                continue
+        if not re.match(r'http[s]?://', url):
+            await m.reply_text(f"Invalid URL skipped: {line}")
+            continue
 
-            name = re.sub(r'[\\/:*?"<>|]', "", content[i][:60]).strip()
-            name = f"{str(count).zfill(3)}) {name}"
+        name = re.sub(r'[\\/:*?"<>|]', "", line[:60]).strip()
+        name = f"{str(count).zfill(3)}) {name}"
 
-            if ".pdf" in url.lower():
-                file_type = "PDF"
-            else:
-                file_type = "Video"
+        if ".pdf" in url.lower():
+            file_type = "PDF"
+        else:
+            file_type = "Video"
+
+        if file_type == "Video":
+            ytf = (
+                f"bestvideo[height<={resolution}]+bestaudio/best[height<={resolution}]"
+                if "youtu" in url else
+                f"best[height<={resolution}]/bv[height<={resolution}]+ba/b"
+            )
+            cmd = f'yt-dlp -f "{ytf}" "{url}" -o "{name}.mp4"'
+        else:
+            cmd = f'yt-dlp -o "{name}.pdf" "{url}"'
+
+        try:
+            download_status = getstatusoutput(cmd)
+            if download_status[0] != 0:
+                raise Exception(f"Download failed: {download_status[1]}")
+
+            file_path = f"{name}.mp4" if file_type == "Video" else f"{name}.pdf"
+            file_caption = (
+                f"**[📽️] Video File:** {name}\n**Batch:** {batch_name}\n{caption},JOIN @TARGETALLCOURSE"
+                if file_type == "Video" else
+                f"**[📁] PDF File:** {name}\n**Batch:** {batch_name}\n{caption},JOIN @TARGETALLCOURSE"
+            )
 
             if file_type == "Video":
-                ytf = (
-                    f"bestvideo[height<={resolution}]+bestaudio/best[height<={resolution}]"
-                    if "youtu" in url else
-                    f"best[height<={resolution}]/bv[height<={resolution}]+ba/b"
-                )
-                cmd = f'yt-dlp -f "{ytf}" "{url}" -o "{name}.mp4"'
+                await bot.send_video(chat_id=m.chat.id, video=file_path, caption=file_caption, thumb=thumbnail)
             else:
-                cmd = f'yt-dlp -o "{name}.pdf" "{url}"'
+                await bot.send_document(chat_id=m.chat.id, document=file_path, caption=file_caption)
 
-            try:
-                download_status = getstatusoutput(cmd)
-                if download_status[0] != 0:
-                    raise Exception(f"Download failed: {download_status[1]}")
-
-                file_path = f"{name}.mp4" if file_type == "Video" else f"{name}.pdf"
-                file_caption = (
-                    f"**[📽️] Video File:** {name}\n**Batch:** {batch_name}\n{caption},JOIN @TARGETALLCOURSE"
-                    if file_type == "Video" else
-                    f"**[📁] PDF File:** {name}\n**Batch:** {batch_name}\n{caption},JOIN @TARGETALLCOURSE"
-                )
-
-                if file_type == "Video":
-                    await bot.send_video(chat_id=m.chat.id, video=file_path, caption=file_caption, thumb=thumbnail)
-                else:
-                    await bot.send_document(chat_id=m.chat.id, document=file_path, caption=file_caption)
-
-                os.remove(file_path)
-                count += 1
-            except FloodWait as e:
-                await m.reply_text(f"FloodWait: Sleeping for {e.x} seconds.")
-                time.sleep(e.x)
-                continue
-            except Exception as e:
-                await m.reply_text(f"Error: {e}\n**Name:** {name}\n**URL:** {url}")
-                continue
-
-    except Exception as e:
-        await m.reply_text(f"Unexpected error: {e}")
+            os.remove(file_path)
+            count += 1
+        except FloodWait as e:
+            await m.reply_text(f"FloodWait: Sleeping for {e.x} seconds.")
+            time.sleep(e.x)
+            continue
+        except Exception as e:
+            await m.reply_text(f"Error: {e}\n**Name:** {name}\n**URL:** {url}")
+            continue
+except Exception as e:
+    await m.reply_text(f"Unexpected error: {e}")
     
     await m.reply_text("**✅ All tasks completed! BY ❤️ CR CHOUDHARY **")
 
