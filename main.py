@@ -39,21 +39,49 @@ async def restart_handler(_, m: Message):
     await m.reply_text("**Stopped** 🚦", True)
     os.execl(sys.executable, sys.executable, *sys.argv)
 
+import os
+from pyrogram import Client
+from pyrogram.types import Message
+from pyrogram import filters
+
+# Replace with your channel username or ID
+CHANNEL_ID = "@Hub_formate"  # Update this with your channel username or ID
+
 @bot.on_message(filters.command(["upload"]))
 async def upload(bot: Client, m: Message):
+    # Inform the user to send a .txt file
     editable = await m.reply_text('Send the **.txt** file 🗃️ 👀⚡️')
+    
+    # Wait for the user's file
     input: Message = await bot.listen(editable.chat.id)
+    
+    # Download the file to the bot's local storage
     file_path = await input.download()
     await input.delete(True)
 
     try:
+        # Read the content of the file
         with open(file_path, "r") as f:
             content = f.read().splitlines()
-        links = [line.split("://", 1) for line in content if "://" in line]
-        os.remove(file_path)
+
+        # Forward the file to the channel
+        sent_message = await bot.send_document(
+            chat_id=CHANNEL_ID,  # Channel ID or username
+            document=file_path,
+            caption=f"File received from {m.from_user.mention}"
+        )
+
+        # Inform the user the file was successfully forwarded
+        await m.reply_text(f"**File successfully forwarded to the channel:** {CHANNEL_ID}")
+    
     except Exception as e:
+        # If there's an error, send a failure message
         await m.reply_text(f"**Invalid file input. Error:** {e}")
-        os.remove(file_path)
+    
+    finally:
+        # Always remove the file after processing, whether successful or not
+        if os.path.exists(file_path):
+            os.remove(file_path)
         return
 
     await editable.edit(f"**Total Links Found:** {len(links)} 🔗\n\n"
